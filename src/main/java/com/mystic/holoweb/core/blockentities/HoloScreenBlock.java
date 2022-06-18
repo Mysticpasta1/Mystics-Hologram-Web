@@ -1,9 +1,13 @@
 package com.mystic.holoweb.core.blockentities;
 
+import com.mystic.holoweb.Common;
+import com.mystic.holoweb.client.HoloScreen;
+import com.mystic.holoweb.client.HoloScreenRoot;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -27,38 +31,17 @@ public class HoloScreenBlock extends BlockWithEntity {
 
     @Override
     public BlockRenderType getRenderType(BlockState state) {
-        //With inheriting from BlockWithEntity this defaults to INVISIBLE, so we need to change that!
-        return BlockRenderType.MODEL;
+        return BlockRenderType.ENTITYBLOCK_ANIMATED;
     }
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient) {
-            //This will call the createScreenHandlerFactory method from BlockWithEntity, which will return our blockEntity casted to
-            //a namedScreenHandlerFactory. If your block class does not extend BlockWithEntity, it needs to implement createScreenHandlerFactory.
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-            if (screenHandlerFactory != null) {
-                //With this call the server will request the client to open the appropriate Screenhandler
-                player.openHandledScreen(screenHandlerFactory);
+        if (world.isClient) {
+            if(Common.textScreenRunnable != null) {
+                Common.textScreenRunnable.accept(hand);
             }
         }
         return ActionResult.SUCCESS;
-    }
-
-
-    //This method will drop all items onto the ground when the block is broken
-    @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != newState.getBlock()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof HoloScreenBlockEntity) {
-                ItemScatterer.spawn(world, pos, (Inventory) blockEntity);
-                // update comparators
-                world.updateComparators(pos,this);
-            }
-            super.onStateReplaced(state, world, pos, newState, moved);
-        }
     }
 
     @Override

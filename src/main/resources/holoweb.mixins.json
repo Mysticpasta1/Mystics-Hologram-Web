@@ -4,6 +4,7 @@
   "package": "com.mystic.holoweb.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "VertexConsumerProviderImmediateAccessor"
   ],
   "client": [
   ],

@@ -1,54 +1,34 @@
 package com.mystic.holoweb.core.blockentities;
 
 import com.mystic.holoweb.HoloWeb;
-import com.mystic.holoweb.client.HoloScreenHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.PlayState;
+import software.bernie.geckolib3.core.controller.AnimationController;
+import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
 
-public class HoloScreenBlockEntity extends BlockEntity implements NamedScreenHandlerFactory{
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(9, ItemStack.EMPTY);
-
+public class HoloScreenBlockEntity extends BlockEntity implements IAnimatable {
     public HoloScreenBlockEntity(BlockPos pos, BlockState state) {
         super(HoloWeb.HOLO_BLOCK_ENTITY, pos, state);
     }
 
-    //These Methods are from the NamedScreenHandlerFactory Interface
-    //createMenu creates the ScreenHandler itself
-    //getDisplayName will Provide its name which is normally shown at the top
+    private final AnimationFactory factory = new AnimationFactory(this);
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        //We provide *this* to the screenHandler as our class Implements Inventory
-        //Only the Server has the Inventory at the start, this will be synced to the client in the ScreenHandler
-        return new HoloScreenHandler(syncId, playerInventory, (Inventory) this);
+    public void registerControllers(AnimationData animationData) {
+        animationData.addAnimationController(new AnimationController<>(this, "controller", 0, this::predicate));
     }
 
     @Override
-    public Text getDisplayName() {
-        return new TranslatableText(getCachedState().getBlock().getTranslationKey());
+    public AnimationFactory getFactory() {
+        return factory;
     }
 
-    @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        Inventories.readNbt(nbt, this.inventory);
-    }
-
-    @Override
-    public void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        Inventories.writeNbt(nbt, this.inventory);
+    private <P extends IAnimatable> PlayState predicate(AnimationEvent<P> event) {
+        return PlayState.CONTINUE;
     }
 }
